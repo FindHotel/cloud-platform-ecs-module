@@ -186,6 +186,30 @@ resource "aws_ecs_service" "this" {
     }
   }
 
+  dynamic "volume_configuration" {
+    for_each = var.volume_configuration
+
+    content {
+      name = try(volume_configuration.value.name, volume_configuration.key)
+
+      dynamic "managed_ebs_volume" {
+        for_each = try([volume_configuration.value.managed_ebs_volume], [])
+
+        content {
+          role_arn         = try(managed_ebs_volume.value.role_arn, null)
+          encrypted        = try(managed_ebs_volume.value.encrypted, null)
+          file_system_type = try(managed_ebs_volume.value.file_system_type, null)
+          iops             = try(managed_ebs_volume.value.iops, null)
+          kms_key_id       = try(managed_ebs_volume.value.kms_key_id, null)
+          size_in_gb       = try(managed_ebs_volume.value.size_in_gb, null)
+          snapshot_id      = try(managed_ebs_volume.value.snapshot_id, null)
+          throughput       = try(managed_ebs_volume.value.throughput, null)
+          volume_type      = try(managed_ebs_volume.value.volume_type, null)
+        }
+      }
+    }
+  }
+
   task_definition       = local.task_definition
   triggers              = var.triggers
   wait_for_steady_state = var.wait_for_steady_state
@@ -369,6 +393,30 @@ resource "aws_ecs_service" "ignore_task_definition" {
       container_port = try(service_registries.value.container_port, null)
       port           = try(service_registries.value.port, null)
       registry_arn   = service_registries.value.registry_arn
+    }
+  }
+
+  dynamic "volume_configuration" {
+    for_each = var.volume_configuration
+
+    content {
+      name = try(volume_configuration.value.name, volume_configuration.key)
+
+      dynamic "managed_ebs_volume" {
+        for_each = try([volume_configuration.value.managed_ebs_volume], [])
+
+        content {
+          role_arn         = try(managed_ebs_volume.value.role_arn, null)
+          encrypted        = try(managed_ebs_volume.value.encrypted, null)
+          file_system_type = try(managed_ebs_volume.value.file_system_type, null)
+          iops             = try(managed_ebs_volume.value.iops, null)
+          kms_key_id       = try(managed_ebs_volume.value.kms_key_id, null)
+          size_in_gb       = try(managed_ebs_volume.value.size_in_gb, null)
+          snapshot_id      = try(managed_ebs_volume.value.snapshot_id, null)
+          throughput       = try(managed_ebs_volume.value.throughput, null)
+          volume_type      = try(managed_ebs_volume.value.volume_type, null)
+        }
+      }
     }
   }
 
@@ -728,8 +776,9 @@ resource "aws_ecs_task_definition" "this" {
         }
       }
 
-      host_path = try(volume.value.host_path, null)
-      name      = try(volume.value.name, volume.key)
+      host_path           = try(volume.value.host_path, null)
+      configure_at_launch = try(volume.value.configure_at_launch, null)
+      name                = try(volume.value.name, volume.key)
     }
   }
 
