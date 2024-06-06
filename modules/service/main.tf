@@ -196,7 +196,7 @@ resource "aws_ecs_service" "this" {
         for_each = try([volume_configuration.value.managed_ebs_volume], [])
 
         content {
-          role_arn         = try(managed_ebs_volume.value.role_arn, null)
+          role_arn         = local.iam_role_arn
           encrypted        = try(managed_ebs_volume.value.encrypted, null)
           file_system_type = try(managed_ebs_volume.value.file_system_type, null)
           iops             = try(managed_ebs_volume.value.iops, null)
@@ -406,7 +406,7 @@ resource "aws_ecs_service" "ignore_task_definition" {
         for_each = try([volume_configuration.value.managed_ebs_volume], [])
 
         content {
-          role_arn         = try(managed_ebs_volume.value.role_arn, null)
+          role_arn         = local.iam_role_arn
           encrypted        = try(managed_ebs_volume.value.encrypted, null)
           file_system_type = try(managed_ebs_volume.value.file_system_type, null)
           iops             = try(managed_ebs_volume.value.iops, null)
