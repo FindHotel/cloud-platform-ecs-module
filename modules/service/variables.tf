@@ -4,6 +4,12 @@ variable "create" {
   default     = true
 }
 
+variable "create_service" {
+  description = "Determines whether service resource will be created (set to `false` in case you want to create task definition only)"
+  type        = bool
+  default     = true
+}
+
 variable "tags" {
   description = "A map of tags to add to all resources"
   type        = map(string)
@@ -436,6 +442,12 @@ variable "task_exec_iam_role_policies" {
   description = "Map of IAM role policy ARNs to attach to the IAM role"
   type        = map(string)
   default     = {}
+}
+
+variable "task_exec_iam_role_max_session_duration" {
+  description = "Maximum session duration (in seconds) for ECS task execution role. Default is 3600."
+  type        = number
+  default     = null
 }
 
 variable "create_task_exec_policy" {

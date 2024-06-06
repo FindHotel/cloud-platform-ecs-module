@@ -114,11 +114,18 @@ module "ecs_service" {
 
       linux_parameters = {
         capabilities = {
+          add = []
           drop = [
             "NET_RAW"
           ]
         }
       }
+
+      # Not required for fluent-bit, just an example
+      volumes_from = [{
+        sourceContainer = "fluent-bit"
+        readOnly        = false
+      }]
 
       memory_reservation = 100
     }
@@ -165,6 +172,59 @@ module "ecs_service" {
 
   service_tags = {
     "ServiceTag" = "Tag on service level"
+  }
+
+  tags = local.tags
+}
+
+################################################################################
+# Standalone Task Definition (w/o Service)
+################################################################################
+
+module "ecs_task_definition" {
+  source = "../../modules/service"
+
+  # Service
+  name        = "${local.name}-standalone"
+  cluster_arn = module.ecs_cluster.arn
+
+  # Task Definition
+  volume = {
+    ex-vol = {}
+  }
+
+  runtime_platform = {
+    cpu_architecture        = "ARM64"
+    operating_system_family = "LINUX"
+  }
+
+  # Container definition(s)
+  container_definitions = {
+    al2023 = {
+      image = "public.ecr.aws/amazonlinux/amazonlinux:2023-minimal"
+
+      mount_points = [
+        {
+          sourceVolume  = "ex-vol",
+          containerPath = "/var/www/ex-vol"
+        }
+      ]
+
+      command    = ["echo hello world"]
+      entrypoint = ["/usr/bin/sh", "-c"]
+    }
+  }
+
+  subnet_ids = module.vpc.private_subnets
+
+  security_group_rules = {
+    egress_all = {
+      type        = "egress"
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
   }
 
   tags = local.tags

@@ -24,10 +24,12 @@ locals {
     security_groups  = flatten(concat([try(aws_security_group.this[0].id, [])], var.security_group_ids))
     subnets          = var.subnet_ids
   }
+
+  create_service = var.create && var.create_service
 }
 
 resource "aws_ecs_service" "this" {
-  count = var.create && !var.ignore_task_definition_changes ? 1 : 0
+  count = local.create_service && !var.ignore_task_definition_changes ? 1 : 0
 
   dynamic "alarms" {
     for_each = length(var.alarms) > 0 ? [var.alarms] : []
@@ -95,7 +97,7 @@ resource "aws_ecs_service" "this" {
 
   dynamic "network_configuration" {
     # Set by task set if deployment controller is external
-    for_each = var.network_mode == "awsvpc" ? [{ for k, v in local.network_configuration : k => v if !local.is_external_deployment }] : []
+    for_each = var.network_mode == "awsvpc" && !local.is_external_deployment ? [local.network_configuration] : []
 
     content {
       assign_public_ip = network_configuration.value.assign_public_ip
@@ -240,7 +242,7 @@ resource "aws_ecs_service" "this" {
 ################################################################################
 
 resource "aws_ecs_service" "ignore_task_definition" {
-  count = var.create && var.ignore_task_definition_changes ? 1 : 0
+  count = local.create_service && var.ignore_task_definition_changes ? 1 : 0
 
   dynamic "alarms" {
     for_each = length(var.alarms) > 0 ? [var.alarms] : []
@@ -436,7 +438,9 @@ resource "aws_ecs_service" "ignore_task_definition" {
     delete = try(var.timeouts.delete, null)
   }
 
-  depends_on = [aws_iam_role_policy_attachment.service]
+  depends_on = [
+    aws_iam_role_policy_attachment.service
+  ]
 
   lifecycle {
     ignore_changes = [
@@ -833,6 +837,7 @@ resource "aws_iam_role" "task_exec" {
   description = coalesce(var.task_exec_iam_role_description, "Task execution role for ${local.task_exec_iam_role_name}")
 
   assume_role_policy    = data.aws_iam_policy_document.task_exec_assume[0].json
+  max_session_duration  = var.task_exec_iam_role_max_session_duration
   permissions_boundary  = var.task_exec_iam_role_permissions_boundary
   force_detach_policies = true
 
@@ -1247,7 +1252,7 @@ resource "aws_ecs_task_set" "ignore_task_definition" {
 ################################################################################
 
 locals {
-  enable_autoscaling = var.create && var.enable_autoscaling && !local.is_daemon
+  enable_autoscaling = local.create_service && var.enable_autoscaling && !local.is_daemon
 
   cluster_name = element(split("/", var.cluster_arn), 1)
 }
@@ -1379,7 +1384,11 @@ resource "aws_security_group" "this" {
   description = var.security_group_description
   vpc_id      = data.aws_subnet.this[0].vpc_id
 
-  tags = merge(var.tags, var.security_group_tags)
+  tags = merge(
+    var.tags,
+    { "Name" = local.security_group_name },
+    var.security_group_tags
+  )
 
   lifecycle {
     create_before_destroy = true
