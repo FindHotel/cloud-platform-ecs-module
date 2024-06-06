@@ -202,7 +202,7 @@ resource "aws_ecs_service" "this" {
           encrypted        = try(managed_ebs_volume.value.encrypted, null)
           file_system_type = try(managed_ebs_volume.value.file_system_type, null)
           iops             = try(managed_ebs_volume.value.iops, null)
-          kms_key_id       = try(managed_ebs_volume.value.kms_key_id, null)
+          kms_key_id       = managed_ebs_volume.value.kms_key_id
           size_in_gb       = try(managed_ebs_volume.value.size_in_gb, null)
           snapshot_id      = try(managed_ebs_volume.value.snapshot_id, null)
           throughput       = try(managed_ebs_volume.value.throughput, null)
@@ -414,7 +414,7 @@ resource "aws_ecs_service" "ignore_task_definition" {
           encrypted        = try(managed_ebs_volume.value.encrypted, null)
           file_system_type = try(managed_ebs_volume.value.file_system_type, null)
           iops             = try(managed_ebs_volume.value.iops, null)
-          kms_key_id       = try(managed_ebs_volume.value.kms_key_id, null)
+          kms_key_id       = managed_ebs_volume.value.kms_key_id
           size_in_gb       = try(managed_ebs_volume.value.size_in_gb, null)
           snapshot_id      = try(managed_ebs_volume.value.snapshot_id, null)
           throughput       = try(managed_ebs_volume.value.throughput, null)
