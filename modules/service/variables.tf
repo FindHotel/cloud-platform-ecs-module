@@ -653,3 +653,13 @@ variable "security_group_tags" {
   type        = map(string)
   default     = {}
 }
+
+################################################################################
+# KMS for EBS volumes
+################################################################################
+
+variable "create_kms" {
+  description = "Determines if a KMS for EBS volumes is created"
+  type        = bool
+  default     = false
+}

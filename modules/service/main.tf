@@ -200,7 +200,7 @@ resource "aws_ecs_service" "this" {
           encrypted        = try(managed_ebs_volume.value.encrypted, null)
           file_system_type = try(managed_ebs_volume.value.file_system_type, null)
           iops             = try(managed_ebs_volume.value.iops, null)
-          kms_key_id       = try(managed_ebs_volume.value.kms_key_id, null)
+          kms_key_id       = try(aws_kms_key.this[0].arn, null)
           size_in_gb       = try(managed_ebs_volume.value.size_in_gb, null)
           snapshot_id      = try(managed_ebs_volume.value.snapshot_id, null)
           throughput       = try(managed_ebs_volume.value.throughput, null)
@@ -223,7 +223,10 @@ resource "aws_ecs_service" "this" {
     delete = try(var.timeouts.delete, null)
   }
 
-  depends_on = [aws_iam_role_policy_attachment.service]
+  depends_on = [
+    aws_iam_role_policy_attachment.service,
+    aws_kms_key.this
+  ]
 
   lifecycle {
     ignore_changes = [
@@ -410,7 +413,7 @@ resource "aws_ecs_service" "ignore_task_definition" {
           encrypted        = try(managed_ebs_volume.value.encrypted, null)
           file_system_type = try(managed_ebs_volume.value.file_system_type, null)
           iops             = try(managed_ebs_volume.value.iops, null)
-          kms_key_id       = try(managed_ebs_volume.value.kms_key_id, null)
+          kms_key_id       = try(aws_kms_key.this[0].arn, null)
           size_in_gb       = try(managed_ebs_volume.value.size_in_gb, null)
           snapshot_id      = try(managed_ebs_volume.value.snapshot_id, null)
           throughput       = try(managed_ebs_volume.value.throughput, null)
@@ -1494,4 +1497,29 @@ resource "aws_security_group_rule" "this" {
   prefix_list_ids          = lookup(each.value, "prefix_list_ids", null)
   self                     = lookup(each.value, "self", null)
   source_security_group_id = lookup(each.value, "source_security_group_id", null)
+}
+
+################################################################################
+# KMS for EBS volumes
+################################################################################
+
+locals {
+  needs_ebs_volume_encrypted = var.create && var.create_kms && var.volume_configuration != null
+  create_kms                 = local.needs_ebs_volume_encrypted
+}
+
+resource "aws_kms_key" "this" {
+  count = local.create_kms ? 1 : 0
+
+  description             = "The KMS key to use for Amazon EBS encryption"
+  key_usage               = "ENCRYPT_DECRYPT"
+  enable_key_rotation     = true
+  deletion_window_in_days = 7
+}
+
+resource "aws_kms_alias" "this" {
+  count = local.create_kms ? 1 : 0
+
+  name          = "alias/${var.name}-ebs"
+  target_key_id = aws_kms_key.this[0].key_id
 }
