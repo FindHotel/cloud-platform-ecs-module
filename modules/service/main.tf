@@ -446,7 +446,6 @@ resource "aws_ecs_service" "ignore_task_definition" {
       desired_count, # Always ignored
       task_definition,
       iam_role, # Ignoring changes in IAM role when using both ALBs
-      load_balancer
     ]
   }
 }
