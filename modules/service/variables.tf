@@ -373,6 +373,12 @@ variable "volume" {
   default     = {}
 }
 
+variable "volume_configuration" {
+  description = "Configuration for a volume specified in the task definition as a volume that is configured at launch time. Currently, the only supported volume type is an Amazon EBS volume"
+  type        = any
+  default     = {}
+}
+
 variable "task_tags" {
   description = "A map of additional tags to add to the task definition/set created"
   type        = map(string)
