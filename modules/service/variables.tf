@@ -665,3 +665,9 @@ variable "security_group_tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "availability_zone_rebalancing" {
+  description = "ECS automatically redistributes tasks within a service across Availability Zones (AZs) to mitigate the risk of impaired application availability due to underlying infrastructure failures and task lifecycle activities. The valid values are ENABLED and DISABLED. Defaults to DISABLED"
+  type = bool
+  default = false
+}

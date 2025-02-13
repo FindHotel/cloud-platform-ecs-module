@@ -216,6 +216,8 @@ resource "aws_ecs_service" "this" {
   triggers              = var.triggers
   wait_for_steady_state = var.wait_for_steady_state
 
+  availability_zone_rebalancing = var.availability_zone_rebalancing
+
   propagate_tags = var.propagate_tags
   tags           = merge(var.tags, var.service_tags)
 
@@ -427,6 +429,8 @@ resource "aws_ecs_service" "ignore_task_definition" {
   task_definition       = local.task_definition
   triggers              = var.triggers
   wait_for_steady_state = var.wait_for_steady_state
+
+  availability_zone_rebalancing = var.availability_zone_rebalancing
 
   propagate_tags = var.propagate_tags
   tags           = var.tags
