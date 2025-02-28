@@ -321,28 +321,3 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
-
-variable "health_check" {
-  type    = map(any)
-  default = {}
-}
-
-variable "health_check_interval" {
-  type    = number
-  default = 30
-}
-
-variable "health_check_retries" {
-  type    = number
-  default = 3
-}
-
-variable "health_check_timeout" {
-  type    = number
-  default = 5
-}
-
-variable "load_balancer_type" {
-  type    = string
-  default = "BOTH"
-}
